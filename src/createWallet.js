@@ -1,45 +1,30 @@
-// Import dependencies / Importar dependências
-import * as bip32 from 'bip32';
-import * as bip39 from 'bip39';
-import * as bitcoin from 'bitcoinjs-lib';
+import { networks, payments } from 'bitcoinjs-lib';
+import { generateMnemonic, mnemonicToSeed } from 'bip39';
+import { fromSeed } from 'bip32';
 
 
-try{
-// Define network / Definir rede
-// Testnet is the bitcoin network for testing purposes
-// Testnet é a rede bitcoin para fins de teste
-const network = bitcoin.networks.testnet;
+// Definir a rede Testnet
+const testnet = networks.testnet;
 
-// Derivation path / Caminho de derivação
-// It's the derivation for HD wallets
-// É a derivação para carteiras HD
-const path = "m/44'/1'/0'/0/0";
+// Gerar uma seed usando bip39
+const mnemonic = generateMnemonic();
+console.log('Mnemonic:', mnemonic);
 
-// Generate a random mnemonic / Gerar um mnemônico aleatório
-// Generates a mnemonic for our seed (password / access phrase)
-// Gera um mnemônico para nossa seed (palavra de senha / acesso)
-let mnemonic = bip39.generateMnemonic();
-const seed = bip39.mnemonicToSeedSync(mnemonic);
+mnemonicToSeed(mnemonic).then((seed) => {
+  // Derivar a raiz da chave usando bip32
+  const root = fromSeed(seed, testnet);
 
-// Create root of our key tree / Criar raiz da nossa árvore de chaves
-let root = bip32.fromSeed(seed, network);
+  // Derivar o caminho padrão da carteira (m/44'/1'/0'/0/0)
+  const path = `m/44'/1'/0'/0/0`;
+  const account = root.derivePath(path);
 
-// Create account / Criar conta
-let account = root.derivePath(path);
-let node = account.derive(0).derive(0)
-
-let btcAndress = bitcoin.payments.p2pkh({
+  // Gerar chave privada e endereço público
+  const privateKey = account.toWIF();
+  const { address } = payments.p2pkh({
     pubkey: account.publicKey,
-    network: network
-}).address;
+    network: testnet,
+  });
 
-console.log("Carteira criada com sucesso!");
-console.log("Endereço da carteira: ", btcAndress);
-console.log("Chave privada:", node.toWIF());
-console.log("Seed:",mnemonic)
-
-} catch (error) {
-    console.log("Erro ao criar a carteira:", error);
-}
-
-
+  console.log('Endereço Testnet:', address);
+  console.log('Chave Privada (WIF):', privateKey);
+});
