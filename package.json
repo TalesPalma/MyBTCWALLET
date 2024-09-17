@@ -1,6 +1,6 @@
 {
-  "type": "module",
   "name": "mybtcwallet",
+  "type": "module",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -11,8 +11,9 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "bip32": "^2.0.6",
+    "bip32": "^5.0.0-rc.0",
     "bip39": "^3.1.0",
-    "bitcoinjs-lib": "^7.0.0-rc.0"
+    "bitcoinjs-lib": "^7.0.0-rc.0",
+    "tiny-secp256k1": "^2.2.3"
   }
 }

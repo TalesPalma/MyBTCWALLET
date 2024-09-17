@@ -1,30 +1,48 @@
-import { networks, payments } from 'bitcoinjs-lib';
-import { generateMnemonic, mnemonicToSeed } from 'bip39';
-import { fromSeed } from 'bip32';
+import * as bip39 from 'bip39';
+import * as bitcoin from 'bitcoinjs-lib';
+import * as ecc from 'tiny-secp256k1';
+import { BIP32Factory } from 'bip32';
 
+const bip32 = BIP32Factory(ecc);
 
-// Definir a rede Testnet
-const testnet = networks.testnet;
+async function createWallet() {
+	try {
+		// Definir rede como testnet4
+		const network = {
+			...bitcoin.networks.testnet,
+			bip32: {
+				public: 0x043587cf,
+				private: 0x04358394
+			}
+		};
 
-// Gerar uma seed usando bip39
-const mnemonic = generateMnemonic();
-console.log('Mnemonic:', mnemonic);
+		// Caminho de derivação para testnet4
+		const path = "m/44'/1'/0'/0/0";
 
-mnemonicToSeed(mnemonic).then((seed) => {
-  // Derivar a raiz da chave usando bip32
-  const root = fromSeed(seed, testnet);
+		const mnemonic = bip39.generateMnemonic();
+		const seed = await bip39.mnemonicToSeed(mnemonic);
 
-  // Derivar o caminho padrão da carteira (m/44'/1'/0'/0/0)
-  const path = `m/44'/1'/0'/0/0`;
-  const account = root.derivePath(path);
+		const root = bip32.fromSeed(seed, network);
+		const child = root.derivePath(path);
 
-  // Gerar chave privada e endereço público
-  const privateKey = account.toWIF();
-  const { address } = payments.p2pkh({
-    pubkey: account.publicKey,
-    network: testnet,
-  });
+		// Gerar endereço P2WPKH (SegWit) para testnet4
+		const { address } = bitcoin.payments.p2wpkh({
+			pubkey: child.publicKey,
+			network: network
+		});
 
-  console.log('Endereço Testnet:', address);
-  console.log('Chave Privada (WIF):', privateKey);
-});
+		console.log("Carteira criada com sucesso!");
+		console.log("Endereço da carteira (testnet4):", address);
+		console.log("Chave privada:", child.toWIF());
+		console.log("Seed:", mnemonic);
+
+		if (!address.startsWith("tb1")) {
+			throw new Error("Endereço inválido para testnet4");
+		}
+
+	} catch (error) {
+		console.log("Erro ao criar a carteira:", error);
+	}
+}
+
+createWallet();
