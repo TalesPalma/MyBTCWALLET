@@ -13,7 +13,8 @@ async function createWallet() {
 			bip32: {
 				public: 0x043587cf,
 				private: 0x04358394
-			}
+			},
+			bech32: 'tb'
 		};
 
 		// Caminho de derivação para testnet4
@@ -33,7 +34,7 @@ async function createWallet() {
 
 		console.log("Carteira criada com sucesso!");
 		console.log("Endereço da carteira (testnet4):", address);
-		console.log("Chave privada:", child.toWIF());
+		console.log("Chave privada (WIF):", child.toWIF());
 		console.log("Seed:", mnemonic);
 
 		if (!address.startsWith("tb1")) {
